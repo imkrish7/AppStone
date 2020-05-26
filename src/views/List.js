@@ -11,7 +11,13 @@ import DeleteIcon from '@material-ui/icons/Delete';
 import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
 import IconButton from '@material-ui/core/IconButton';
 import EditIcon from '@material-ui/icons/Edit';
-import Edit from './Edit';
+import Dialog from '@material-ui/core/Dialog';
+import DialogActions from '@material-ui/core/DialogActions';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogContentText from '@material-ui/core/DialogContentText';
+import DialogTitle from '@material-ui/core/DialogTitle';
+import Button from '@material-ui/core/Button';
+import TextField from '@material-ui/core/TextField';
 
 class ListUser extends Component{
 
@@ -19,7 +25,12 @@ class ListUser extends Component{
 		super(props)
 		this.state = {
 			list: [],
-			open: false
+			open: false,
+			editInd: null,
+			first_name: null,
+			last_name: null,
+			avatar: null,
+			email: null
 		}
 	}
 
@@ -34,43 +45,92 @@ class ListUser extends Component{
 			})
 		}
 	}
-	toggleDialog = ()=>{
+
+	editToggle = (ind)=>{
+		let obj = {...this.state.list[ind]}
+
+		this.setState({
+			open: !this.state.open,
+			editInd: ind, 
+			first_name: obj.first_name,
+			last_name: obj.last_name,
+			email: obj.email,
+			avatar: obj.avatar
+		})
+	}
+
+	closeToggle = ()=>{
 		this.setState({
 			open: !this.state.open
 		})
 	}
 
-	edit = (ind, editObject)=>{
-		let list = [...this.state.list];
-		list[ind] = editObject;
+	handleChange = (e)=>{
+		const { name, value} = e.target;
+		this.setState({
+			[name]: value
+		})
+	}
+
+	edit = ()=>{
+		let ind = this.state.editInd;
+		let list = [...this.state.list]
+		list[ind].first_name = this.state.first_name;
+		list[ind].last_name = this.state.last_name;
+		list[ind].email = this.state.email;
 		this.setState({
 			list: [...list],
-			open: !this.state.open
-		})
+			editInd: null,
+			open: !this.state.open,
+			first_name: null,
+			last_name: null,
+			avatar: null,
+			email: null,
+		});
 	}
 
 	delete = (ind)=>{
 		this.setState({
-			list: [...this.state.list.filter((entity, i) => i != ind)]
+			list: this.state.list.filter((entity, i) => i!=ind)
 		})
 	}
 	render(){ 	
-
+		// console.log(this.state)
 		return <div className="list">
+				{this.state.open && <Dialog open={this.state.open} onClose={this.closeToggle}>
+						<DialogTitle>Edit</DialogTitle>
+						<DialogContent>
+							<ListItem button>
+								<ListItemAvatar>
+									<Avatar src={this.state.avatar} />
+								</ListItemAvatar>
+							</ListItem>
+							<TextField onChange={this.handleChange} value={this.state.first_name} name="first_name" label="First Name" type="text" fullWidth />
+							<TextField onChange={this.handleChange} value={this.state.last_name} name="last_name" label="Last Name" type="text" fullWidth />
+							<TextField onChange={this.handleChange} value={this.state.email} name="email" label="Email" type="email" fullWidth />
+						</DialogContent>
+						<DialogActions>
+							<Button onClick={this.closeToggle} color="primary">
+								Cancel
+							</Button>
+							<Button onClick={this.edit} color="primary">
+								Edit
+							</Button>
+						</DialogActions>
+					</Dialog>}
 				<List component="nav">
 					{this.state.list.map((entity, ind) => {
-						return <ListItem button>
-								<Edit index={ind} data={entity} edit={this.edit} open={this.state.open} toggle={this.toggleDialog} />
+						return <ListItem key={ind} button>
 								<ListItemAvatar>
 									<Avatar src={entity.avatar} />
 								</ListItemAvatar>
 								<ListItemText primary={entity.first_name + ' ' + entity.last_name} secondary={entity.email} />
 								<ListItemSecondaryAction>
-									<IconButton edge="end" aria-label="edit">
-										<EditIcon onClick={this.toggleDialog} />
+									<IconButton onClick={() =>this.editToggle(ind)} edge="end" aria-label="edit">
+										<EditIcon />
 									</IconButton>
-									<IconButton edge="end" aria-label="delete">
-										<DeleteIcon onClick={()=> this.delete(ind)}/>
+									<IconButton onClick={() => this.delete(ind)} edge="end" aria-label="delete">
+										<DeleteIcon />
 									</IconButton>
 								</ListItemSecondaryAction>
 							</ListItem>;
